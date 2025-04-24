@@ -30,6 +30,9 @@
 ## 📂 디렉토리 구조
 ```yaml
 coinmockproject/
+  db/
+    DBManager.java         # DB 연결 및 기본 쿼리 유틸리티
+    TradeRepository.java   # 거래 내역 저장/조회 전용 (예: PortfolioRepository도 추가 가능)
   gui/                       # 화면에 보이는 부분(테이블, 차트, 버튼 등)
     MainWindow.java          # 메인 프레임, 앱 전체 UI
     CoinTablePanel.java      # 코인 시세 테이블
