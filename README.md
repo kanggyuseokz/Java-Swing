@@ -30,13 +30,18 @@
 ## 📂 디렉토리 구조
 ```yaml
 coinmockproject/
-  gui/
-    MainWindow.java         # 메인 프레임 및 전체 UI 제어
-    CoinTablePanel.java     # 코인 시세 테이블 패널
-  model/
-    Coin.java               # 코인 데이터 객체 클래스
-  service/
-    CoinAPIService.java     # 코인 시세 API 연동 클래스
+  gui/                       # 화면에 보이는 부분(테이블, 차트, 버튼 등)
+    MainWindow.java          # 메인 프레임, 앱 전체 UI
+    CoinTablePanel.java      # 코인 시세 테이블
+    PortfolioPanel.java      # 포트폴리오(보유자산, 수익률 등)
+    TradeHistoryPanel.java   # 거래 내역 패널
+  model/                     # 데이터 구조(코인, 거래, 포트폴리오 등)
+    Coin.java                # 코인 데이터 객체
+    Portfolio.java           # 포트폴리오(보유코인, 잔액 등)
+    Trade.java               # 거래 내역(매수, 매도, 가격, 시간 등)
+  service/                   # 외부 API 연동, 로직(거래 처리, 데이터 관리 등)
+    CoinAPIService.java      # 코인 시세 조회 API
+    TradeManager.java        # 매수/매도, 거래 관리, 자산 계산 등
 ```
 ---
 
