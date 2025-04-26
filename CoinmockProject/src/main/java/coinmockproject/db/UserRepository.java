@@ -1,8 +1,13 @@
 package coinmockproject.db;
 
 import coinmockproject.model.User;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.sql.*;
 
+@Setter
+@Getter
 public class UserRepository {
 
     // 회원가입
