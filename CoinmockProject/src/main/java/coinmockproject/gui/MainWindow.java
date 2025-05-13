@@ -4,52 +4,45 @@ import coinmockproject.model.Coin;
 import coinmockproject.service.CoinAPIService;
 import coinmockproject.model.*;
 import coinmockproject.db.*;
+import coinmockproject.gui.Frame;
+import coinmockproject.gui.CoinTablePanel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class MainWindow extends JFrame {
-    private JPanel mainPanel;
-
-    public MainWindow() {
-        setTitle("코인 모의투자");
-        setSize(500, 350);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        mainPanel = new JPanel(new CardLayout());
-        setContentPane(mainPanel);
-
-        showLoginPanel();
+public class MainWindow extends Frame {
+	public MainWindow() {
+		setTitleBar();
+        showLogin(); // 시작 시 로그인 화면
+        setVisible(true); // Frame에서 호출하지 않을 경우 필요
     }
 
-    // 로그인 화면 표시
-    public void showLoginPanel() {
-        mainPanel.removeAll();
-        mainPanel.add(new LoginPanel(this));
+    public void showLogin() {
+    	mainPanel.removeAll();
+        getContentPane().setLayout(null); // 중요: 수동 배치할 때 필요
+        LoginPanel panel = new LoginPanel(this);
+        panel.setBounds(0, 20, 800, 480); // titlePanel 아래 영역 고려
+        getContentPane().add(panel);
         mainPanel.revalidate();
-        mainPanel.repaint();
+        repaint();
     }
 
-    // 회원가입 화면 표시
+    public void showMainUI(User user) {
+    	mainPanel.removeAll();
+    	mainPanel.add(new CoinTablePanel(user));
+        revalidate();
+        repaint();
+    }
+
     public void showRegisterPanel() {
-        mainPanel.removeAll();
-        mainPanel.add(new RegisterPanel(this));
-        mainPanel.revalidate();
-        mainPanel.repaint();
-    }
-
-    // 로그인 성공 후 실제 앱 기능으로 이동
-    public void onLoginSuccess(User user) {
-        mainPanel.removeAll();
-        // 예시: 코인 시세, 포트폴리오, 거래 내역 패널 등 통합
-        mainPanel.add(new JLabel("로그인 환영, " + user.getUsername() + "님!"));
-        // 실제로는 CoinTablePanel, PortfolioPanel 등 붙이면 됨
-        mainPanel.revalidate();
-        mainPanel.repaint();
+    	mainPanel.removeAll();
+    	mainPanel.add(new RegisterPanel(this));
+        revalidate();
+        repaint();
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainWindow().setVisible(true));
+        new MainWindow();
     }
 }

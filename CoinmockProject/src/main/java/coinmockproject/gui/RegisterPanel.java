@@ -37,12 +37,12 @@ public class RegisterPanel extends JPanel {
             boolean success = userRepo.registerUser(username, password);
             if (success) {
                 JOptionPane.showMessageDialog(this, "회원가입 성공! 로그인 해주세요.");
-                mainWindow.showLoginPanel();
+                mainWindow.showLogin();
             } else {
                 JOptionPane.showMessageDialog(this, "이미 존재하는 아이디입니다.");
             }
         });
 
-        goLoginBtn.addActionListener(e -> mainWindow.showLoginPanel());
+        goLoginBtn.addActionListener(e -> mainWindow.showLogin());
     }
 }
