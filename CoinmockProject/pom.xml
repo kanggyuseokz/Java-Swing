@@ -28,5 +28,11 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.33</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>3.2</version> <!-- 최신 버전 확인 가능 -->
+		</dependency>
 	</dependencies>
 </project>

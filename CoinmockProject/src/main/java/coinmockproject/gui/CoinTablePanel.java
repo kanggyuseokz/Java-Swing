@@ -22,13 +22,25 @@ public class CoinTablePanel extends JPanel {
     
     public CoinTablePanel(User user) {
         this(); // 기본 생성자 호출 → 테이블 초기화
-        this.user = user; // 사용자 정보 저장
+        this.user = user;
 
-        // 사용자 이름을 상단에 표시해봄 (선택)
+        setLayout(new BorderLayout());
+
+        // 상단 사용자 표시
         JLabel label = new JLabel(user.getUsername() + "님의 보유 코인");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        label.setForeground(Color.WHITE); // 다크 테마 대응
         add(label, BorderLayout.NORTH);
+
+        // 테이블 설정
+        tableModel = new DefaultTableModel(new Object[]{"코인명", "심볼", "가격(USD)"}, 0) {
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+        JTable table = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        add(scrollPane, BorderLayout.CENTER);
     }
 
  // 시세 갱신용 메서드
