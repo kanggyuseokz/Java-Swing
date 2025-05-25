@@ -40,4 +40,25 @@ public class UserRepository {
         }
         return null; // 로그인 실패
     }
+    
+    public static User findByUsername(String username) {
+        User user = null;
+
+        try (Connection conn = DBManager.getConnection()) {
+            String sql = "SELECT * FROM user WHERE username = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String password = rs.getString("password");
+                user = new User(id, username, password);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return user;
+    }
 }

@@ -2,6 +2,7 @@ package coinmockproject.gui;
 
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -71,6 +72,8 @@ public class Frame extends JFrame {
 		});
 		
 		exit = new JLabel("X");
+		exit.setForeground(Color.red);
+		exit.setFont(new Font("맑은 고딕", Font.BOLD, 13));
 		exit.setBounds(780, 0, 20, 20);
 		exit.addMouseListener(new MouseAdapter() {
 			
@@ -81,6 +84,8 @@ public class Frame extends JFrame {
 		});
 		
 		title = new JLabel("코인 모의 투자");
+		title.setForeground(Color.BLACK);
+		title.setFont(new Font("맑은 고딕", Font.BOLD, 13));
 		title.setBounds(10, 0, 400, 20);
 		
 		titlePanel.add(exit);
