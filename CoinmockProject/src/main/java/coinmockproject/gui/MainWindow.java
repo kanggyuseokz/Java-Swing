@@ -5,7 +5,10 @@ import coinmockproject.service.CoinAPIService;
 import coinmockproject.model.*;
 import coinmockproject.db.*;
 import coinmockproject.gui.*;
-import coinmockproject.gui.CoinTablePanel;
+import coinmockproject.gui.panel.CoinTablePanel;
+import coinmockproject.gui.panel.LoginPanel;
+import coinmockproject.gui.panel.RegisterPanel;
+
 import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.swing.*;

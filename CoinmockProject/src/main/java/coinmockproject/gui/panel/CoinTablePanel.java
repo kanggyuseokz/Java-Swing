@@ -1,4 +1,4 @@
-package coinmockproject.gui;
+package coinmockproject.gui.panel;
 
 import coinmockproject.model.Coin;
 import coinmockproject.model.User;

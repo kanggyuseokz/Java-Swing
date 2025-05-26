@@ -1,6 +1,8 @@
-package coinmockproject.gui;
+package coinmockproject.gui.panel;
 
 import coinmockproject.db.UserRepository;
+import coinmockproject.gui.ColorTheme;
+import coinmockproject.gui.MainWindow;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

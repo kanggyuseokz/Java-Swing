@@ -1,4 +1,4 @@
-package coinmockproject.gui;
+package coinmockproject.gui.panel;
 
 public class TradeHistoryPanel {
 
