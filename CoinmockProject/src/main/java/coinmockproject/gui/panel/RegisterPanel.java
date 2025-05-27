@@ -1,8 +1,9 @@
 package coinmockproject.gui.panel;
 
-import coinmockproject.db.UserRepository;
-import coinmockproject.gui.ColorTheme;
-import coinmockproject.gui.MainWindow;
+import coinmockproject.db.*;
+import coinmockproject.gui.*;
+import coinmockproject.util.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,21 +68,23 @@ public class RegisterPanel extends JPanel {
 
 			// 입력값 검증
 			if (username.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "모든 입력 필드를 채워주세요.");
-				return;
+			    DialogUtil.showWarning(this, "모든 입력 필드를 채워주세요.");
+			    return;
 			}
 
 			if (!password.equals(confirm)) {
-				JOptionPane.showMessageDialog(this, "비밀번호가 일치하지 않습니다.");
-				return;
+			    DialogUtil.showError(this, "비밀번호가 일치하지 않습니다.");
+			    return;
 			}
 
+			// 회원가입 시도
 			boolean success = userRepo.registerUser(username, password);
+
 			if (success) {
-				JOptionPane.showMessageDialog(this, "회원가입 성공! 로그인 해주세요.");
-				mainWindow.showLogin();
+			    DialogUtil.showSuccess(this, "회원가입 성공! 로그인 해주세요.");
+			    mainWindow.showLogin();
 			} else {
-				JOptionPane.showMessageDialog(this, "이미 존재하는 아이디입니다.");
+			    DialogUtil.showError(this, "이미 존재하는 아이디입니다.");
 			}
 		});
 
