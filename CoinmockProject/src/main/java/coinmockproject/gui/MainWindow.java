@@ -59,14 +59,6 @@ public class MainWindow extends Frame {
 	public static void main(String[] args) {
 		try {
 			UIManager.setLookAndFeel(new FlatDarkLaf());
-
-			// 👉 FlatLaf용 다이얼로그 스타일 지정
-			UIManager.put("Label.foreground", Color.WHITE);
-			UIManager.put("OptionPane.messageFont", new Font("맑은 고딕", Font.PLAIN, 13));
-			UIManager.put("OptionPane.buttonFont", new Font("맑은 고딕", Font.BOLD, 12));
-			UIManager.put("OptionPane.messageForeground", Color.WHITE); // 다크 테마 대응
-			UIManager.put("OptionPane.background", new Color(45, 45, 45)); // FlatDarkLaf에 어울리는 배경색
-			UIManager.put("Panel.background", new Color(45, 45, 45)); // 메시지 패널도 동일하게
 		} catch (Exception ex) {
 			System.err.println("FlatLaf 설정 실패: " + ex);
 		}

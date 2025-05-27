@@ -3,6 +3,7 @@ package coinmockproject.gui.panel;
 import coinmockproject.db.*;
 import coinmockproject.model.*;
 import coinmockproject.gui.*;
+import coinmockproject.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -66,19 +67,18 @@ public class LoginPanel extends JPanel {
 			// DB에서 사용자 조회
 			User user = UserRepository.findByUsername(username);
 
-			if (user != null && user.getPassword().equals(password)) {
-				// 로그인 성공
-				JOptionPane.showMessageDialog(this, "로그인 성공!");
-				mainWindow.showMainUI(user);
-			} else {
-				// 로그인 실패
-				JOptionPane.showMessageDialog(this, "아이디 또는 비밀번호가 틀렸습니다.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
-			}
-
 			if (username.isEmpty() || password.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "아이디와 비밀번호를 입력해주세요.");
+				DialogUtil.showWarning(this, "아이디와 비밀번호를 입력해주세요.");
 				return;
 			}
+			if (user != null && user.getPassword().equals(password)) {
+				// 로그인 성공
+				DialogUtil.showSuccess(this, "로그인 성공!");
+		        mainWindow.showMainUI(user);
+		    } else {
+		        DialogUtil.showError(this, "아이디 또는 비밀번호가 틀렸습니다.");
+			}
+
 		});
 
 		regLbl.addMouseListener(new MouseListener() {
