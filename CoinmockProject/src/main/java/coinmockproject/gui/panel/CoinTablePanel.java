@@ -2,6 +2,7 @@ package coinmockproject.gui.panel;
 
 import coinmockproject.model.Coin;
 import coinmockproject.model.User;
+import coinmockproject.service.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -41,8 +42,19 @@ public class CoinTablePanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
 
         add(scrollPane, BorderLayout.CENTER);
+        
+        // ✅ 최초 로딩
+        Coin[] coins = CoinAPIService.fetchCoins();
+        updateTable(coins);
+
+        // ✅ 자동 갱신 타이머 (10초마다 시세 갱신)
+        new Timer(10000, e -> {
+            Coin[] updated = CoinAPIService.fetchCoins();
+            updateTable(updated);
+        }).start();
     }
 
+    
  // 시세 갱신용 메서드
     public void updateTable(Coin[] coins) {
         tableModel.setRowCount(0);
