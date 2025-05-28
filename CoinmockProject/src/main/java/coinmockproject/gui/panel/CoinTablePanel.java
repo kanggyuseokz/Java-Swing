@@ -19,6 +19,9 @@ public class CoinTablePanel extends JPanel {
         };
         JTable table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
+
+        Coin[] coins = CoinAPIService.fetchCoins();
+        updateTable(coins);
     }
     
     public CoinTablePanel(User user) {
@@ -43,7 +46,6 @@ public class CoinTablePanel extends JPanel {
 
         add(scrollPane, BorderLayout.CENTER);
         
-        // ✅ 최초 로딩
         Coin[] coins = CoinAPIService.fetchCoins();
         updateTable(coins);
 
