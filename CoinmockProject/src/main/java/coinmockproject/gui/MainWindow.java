@@ -5,6 +5,7 @@ import coinmockproject.service.CoinAPIService;
 import coinmockproject.model.*;
 import coinmockproject.db.*;
 import coinmockproject.gui.*;
+import coinmockproject.gui.panel.CoinCardPanel;
 import coinmockproject.gui.panel.CoinTablePanel;
 import coinmockproject.gui.panel.LoginPanel;
 import coinmockproject.gui.panel.RegisterPanel;
@@ -36,13 +37,13 @@ public class MainWindow extends Frame {
 	public void showMainUI(User user) {
 	    mainPanel.removeAll();
 	    
-	    CoinTablePanel panel = new CoinTablePanel(user);
+	    CoinCardPanel panel = new CoinCardPanel(user);
 	    panel.setBounds(0, 0, 800, 480);
-	    Coin[] dummyCoins = {
-	    	    new Coin("Bitcoin", "BTC", 67000.00),
-	    	    new Coin("Ethereum", "ETH", 3500.50)
-	    	};
-	    panel.updateTable(dummyCoins);
+//	    Coin[] dummyCoins = {
+//	    	    new Coin("Bitcoin", "BTC", 67000.00),
+//	    	    new Coin("Ethereum", "ETH", 3500.50)
+//	    	};
+//	    panel.updateTable(dummyCoins);
 	    
 	    mainPanel.add(panel);
 	    mainPanel.revalidate();
