@@ -2,7 +2,7 @@ package coinmockproject.gui.panel;
 
 import coinmockproject.model.Coin;
 import coinmockproject.model.User;
-import coinmockproject.service.*;
+import coinmockproject.service.CoinAPIService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,61 +10,64 @@ import java.awt.*;
 
 public class CoinTablePanel extends JPanel {
     private DefaultTableModel tableModel;
-    private User user;
+    private JTable table;
+    private Timer refreshTimer;
 
-    public CoinTablePanel() {
+    /**
+     * User가 있을 수도, 없을 수도 있는 단일 생성자.
+     * user == null 이면 상단 라벨은 생략.
+     */
+    public CoinTablePanel(User user) {
+        // 1) 레이아웃 한 번만 설정
         setLayout(new BorderLayout());
+
+        // 2) (선택) User 라벨
+        if (user != null) {
+            JLabel label = new JLabel(user.getUsername() + "님의 보유 코인");
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            label.setForeground(Color.WHITE);
+            add(label, BorderLayout.NORTH);
+        }
+
+        // 3) 테이블 & 모델 초기화
         tableModel = new DefaultTableModel(new Object[]{"코인명", "심볼", "가격(USD)"}, 0) {
-            public boolean isCellEditable(int row, int col) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
         };
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        Coin[] coins = CoinAPIService.fetchCoins();
-        updateTable(coins);
-    }
-    
-    public CoinTablePanel(User user) {
-        this(); // 기본 생성자 호출 → 테이블 초기화
-        this.user = user;
+        // 4) 즉시 데이터 로드
+        refreshData();
 
-        setLayout(new BorderLayout());
-
-        // 상단 사용자 표시
-        JLabel label = new JLabel(user.getUsername() + "님의 보유 코인");
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        label.setForeground(Color.WHITE); // 다크 테마 대응
-        add(label, BorderLayout.NORTH);
-
-        // 테이블 설정
-        tableModel = new DefaultTableModel(new Object[]{"코인명", "심볼", "가격(USD)"}, 0) {
-            public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
-
-        add(scrollPane, BorderLayout.CENTER);
-        
-        Coin[] coins = CoinAPIService.fetchCoins();
-        updateTable(coins);
-
-        // ✅ 자동 갱신 타이머 (10초마다 시세 갱신)
-        new Timer(10000, e -> {
-            Coin[] updated = CoinAPIService.fetchCoins();
-            updateTable(updated);
-        }).start();
+        // 5) 주기적 갱신 (10초마다)
+        refreshTimer = new Timer(10_000, e -> refreshData());
+        refreshTimer.start();
     }
 
-    
- // 시세 갱신용 메서드
+    /** 
+     * CoinAPIService에서 가져온 배열로 테이블을 갱신.
+     * 반드시 EDT에서 호출되도록 invokeLater 사용.
+     */
+    private void refreshData() {
+        SwingUtilities.invokeLater(() -> {
+            Coin[] coins = CoinAPIService.fetchCoins();
+            updateTable(coins);
+        });
+    }
+
     public void updateTable(Coin[] coins) {
         tableModel.setRowCount(0);
         for (Coin coin : coins) {
             tableModel.addRow(new Object[]{
                 coin.getName(),
                 coin.getSymbol(),
-                coin.getPriceUsd() < 0 ? "오류" : String.format("$%,.2f", coin.getPriceUsd())
+                coin.getPriceUsd() < 0
+                    ? "Error"
+                    : String.format("$%,.2f", coin.getPriceUsd())
             });
         }
     }
