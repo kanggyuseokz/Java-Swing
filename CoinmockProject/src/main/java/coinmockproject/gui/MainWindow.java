@@ -6,7 +6,6 @@ import coinmockproject.model.*;
 import coinmockproject.db.*;
 import coinmockproject.gui.*;
 import coinmockproject.gui.panel.CoinCardPanel;
-import coinmockproject.gui.panel.CoinTablePanel;
 import coinmockproject.gui.panel.LoginPanel;
 import coinmockproject.gui.panel.RegisterPanel;
 
