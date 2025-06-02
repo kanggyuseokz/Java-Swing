@@ -1,164 +1,181 @@
 package coinmockproject.gui.panel;
 
-import coinmockproject.model.Coin;
-import coinmockproject.model.User;
+import coinmockproject.gui.*;
+import coinmockproject.gui.panel.PurchaseFrame;
+import coinmockproject.model.*;
 import coinmockproject.service.CoinAPIService;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
+/**
+ * CoinCardPanel: 코인 카드들을 그리드 형태로 보여주며,
+ * 상단에 '나의 투자 현황' 라벨을 클릭하면 PortfolioPanel로 전환합니다.
+ * 각 코인 카드 전체를 클릭(또는 마우스 오버)하면 스타일이 바뀌고,
+ * 클릭 시 PurchaseFrame을 띄워 구매할 수 있도록 합니다.
+ */
 public class CoinCardPanel extends JPanel {
-    private final JPanel cardsContainer;
-    private final Timer refreshTimer;
+    private final MainWindow mainWindow;
     private final User user;
 
-    public CoinCardPanel(User user) {
-    	this.user = user;
+    public CoinCardPanel(MainWindow mainWindow, User user) {
+        this.mainWindow = mainWindow;
+        this.user = user;
+
         setLayout(new BorderLayout());
-        setBackground(new Color(45, 45, 45));
+        setBackground(ColorTheme.DIMP_GREY);
 
-        // 1) Optional Header
-        if (user != null) {
-            JLabel header = new JLabel(user.getUsername() + "님의 보유 코인");
-            header.setHorizontalAlignment(SwingConstants.CENTER);
-            header.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-            header.setForeground(Color.WHITE);
-            header.setBorder(new EmptyBorder(10, 0, 10, 0));
-            add(header, BorderLayout.NORTH);
-        }
-
-        // 2) 카드 컨테이너: 0행 3열, gap 10px
-        cardsContainer = new JPanel(new GridLayout(0, 3, 10, 10));
-        cardsContainer.setBackground(new Color(45, 45, 45));
-        cardsContainer.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        // 3) 스크롤 페인에 담기
-        JScrollPane scroll = new JScrollPane(cardsContainer,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.setBorder(null);
-        add(scroll, BorderLayout.CENTER);
-
-        // 4) 초기 로드 & 5) 주기 갱신
-        refreshData();
-        refreshTimer = new Timer(10_000, e -> refreshData());
-        refreshTimer.start();
+        initHeader();
+        initCoinCards();
     }
 
-    /** EDT에서 안전하게 코인 데이터를 가져와 카드로 다시 그립니다. */
-    private void refreshData() {
-        SwingUtilities.invokeLater(() -> {
-            cardsContainer.removeAll();
+    // 1. 상단 헤더: '나의 투자 현황' 라벨
+    private void initHeader() {
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        header.setBackground(ColorTheme.DIMP_GREY);
 
-            Coin[] coins = CoinAPIService.fetchCoins();
-            for (Coin coin : coins) {
-                cardsContainer.add(createCard(coin));
+        JLabel investStatus = new JLabel("나의 투자 현황");
+        investStatus.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        investStatus.setForeground(Color.WHITE);
+        investStatus.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        investStatus.setBorder(new EmptyBorder(5, 10, 5, 10));
+
+        investStatus.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                mainWindow.showPortfolioPanel();
             }
 
-            cardsContainer.revalidate();
-            cardsContainer.repaint();
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                investStatus.setForeground(Color.CYAN);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                investStatus.setForeground(Color.WHITE);
+            }
         });
+
+        header.add(investStatus);
+        add(header, BorderLayout.NORTH);
     }
 
-    /** 개별 코인 정보를 담는 카드 컴포넌트 생성: 텍스트를 완전히 가운데 정렬 */
-    private JPanel createCard(Coin coin) {
-        // 1) 카드 JPanel 기본 설정
-        JPanel card = new JPanel(new BorderLayout());
-        card.setPreferredSize(new Dimension(180, 180));
-        card.setBackground(new Color(60, 63, 65));
-        card.setBorder(new CompoundBorder(
-                new EmptyBorder(8, 8, 8, 8),
-                new LineBorder(Color.LIGHT_GRAY, 1, true)
-        ));
+    // 2. 중앙: 코인 카드 그리드 표시
+    private void initCoinCards() {
+        JPanel cardContainer = new JPanel(new GridLayout(0, 3, 10, 10));
+        cardContainer.setBackground(ColorTheme.DIMP_GREY);
+        cardContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 2) 이미지 로딩 및 JLabel 생성
-        JLabel imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imageLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        Coin[] coinArray = CoinAPIService.fetchCoins();
+        List<Coin> allCoins = Arrays.asList(coinArray);
 
-        ImageIcon icon = loadCoinIcon(coin.getSymbol());
-        if (icon != null) {
-            // 아이콘 크기 조정 (너비 64px, 높이 64px)
-            Image scaled = icon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(scaled));
+        for (Coin coin : allCoins) {
+            CoinCard card = new CoinCard(coin);
+            cardContainer.add(card);
         }
-        card.add(imageLabel, BorderLayout.NORTH);
 
-        // 3) 코인명, 심볼, 가격 표시용 패널 (BoxLayout.Y_AXIS)
-        JPanel info = new JPanel();
-        info.setOpaque(false);
-        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(cardContainer);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollPane, BorderLayout.CENTER);
+    }
 
-        // 3-1) 코인명
-        JLabel nameLabel = new JLabel(coin.getName());
-        nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        nameLabel.setForeground(Color.WHITE);
-        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);  // ← 수평 중앙 정렬
+    // 3. CoinCard 컴포넌트: 카드 전체 클릭 및 호버 시 스타일 변경 + 구매창 띄우기
+    private class CoinCard extends JPanel {
+        private final Color normalBg = new Color(50, 50, 50);
+        private final Color hoverBg = new Color(70, 70, 70);
+        private final Color normalBorder = Color.DARK_GRAY;
+        private final Color hoverBorder = Color.CYAN;
 
-        // 3-2) 심볼
-        JLabel symbolLabel = new JLabel(coin.getSymbol());
-        symbolLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        symbolLabel.setForeground(Color.LIGHT_GRAY);
-        symbolLabel.setAlignmentX(Component.CENTER_ALIGNMENT);  // ← 수평 중앙 정렬
+        public CoinCard(Coin coin) {
+            setPreferredSize(new Dimension(200, 180));
+            setBackground(normalBg);
+            setLayout(new BorderLayout());
+            setBorder(BorderFactory.createLineBorder(normalBorder, 1));
 
-        // 3-3) 가격
-        String priceText = coin.getPriceUsd() < 0
-                ? "Error"
-                : String.format("$%,.2f", coin.getPriceUsd());
-        JLabel priceLabel = new JLabel(priceText);
-        priceLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        priceLabel.setForeground(new Color(100, 255, 100));
-        priceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);  // ← 수평 중앙 정렬
+            // 3-1) 이미지 레이블
+            JLabel imageLabel = new JLabel();
+            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            imageLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-        // 4) info 패널에 순서대로 추가 (간격을 위해 스트럿 사용)
-        info.add(Box.createVerticalStrut(8));
-        info.add(nameLabel);
-        info.add(Box.createVerticalStrut(4));
-        info.add(symbolLabel);
-        info.add(Box.createVerticalStrut(6));
-        info.add(priceLabel);
-        info.add(Box.createVerticalGlue());
+            ImageIcon icon = loadCoinIcon(coin.getSymbol());
+            if (icon != null) {
+                Image scaled = icon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaled));
+            }
+            add(imageLabel, BorderLayout.NORTH);
 
-        card.add(info, BorderLayout.CENTER);
-        
-        //    - 커서 모양은 손가락 모양으로 변경
-        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        card.addMouseListener(new MouseAdapter() {
-        	 public void mouseClicked(MouseEvent e) {
-                 // 카드 클릭 시 PurchaseFrame을 띄우기
-                 SwingUtilities.invokeLater(() -> {
-                     PurchaseFrame purchaseFrame = new PurchaseFrame(user, coin);
-                     purchaseFrame.setLocationRelativeTo(card); // 카드 위치 근처에 프레임 띄우기
-                     purchaseFrame.setVisible(true);
-                 });
-             }
-             @Override
-             public void mouseEntered(MouseEvent e) {
-                 card.setBackground(new Color(75, 78, 80)); // hover 시 약간 밝게
-             }
-             @Override
-             public void mouseExited(MouseEvent e) {
-                 card.setBackground(new Color(60, 63, 65)); // 원래 색상으로 복구
-             }
-         });
-        return card;
+            // 3-2) 이름·심볼·가격을 세로로 배치할 infoPanel
+            JPanel infoPanel = new JPanel();
+            infoPanel.setBackground(normalBg);
+            infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+            infoPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
+
+            JLabel nameLabel = new JLabel(coin.getName(), SwingConstants.CENTER);
+            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+            nameLabel.setForeground(Color.WHITE);
+            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            nameLabel.setBorder(new EmptyBorder(3, 0, 3, 0));
+            infoPanel.add(nameLabel);
+
+            JLabel symbolLabel = new JLabel(coin.getSymbol().toUpperCase(), SwingConstants.CENTER);
+            symbolLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+            symbolLabel.setForeground(Color.LIGHT_GRAY);
+            symbolLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            infoPanel.add(symbolLabel);
+
+            JLabel priceLabel = new JLabel("$" + String.format("%,.2f", coin.getPriceUsd()), SwingConstants.CENTER);
+            priceLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            priceLabel.setForeground(Color.GREEN);
+            priceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            priceLabel.setBorder(new EmptyBorder(3, 0, 3, 0));
+            infoPanel.add(priceLabel);
+
+            add(infoPanel, BorderLayout.CENTER);
+
+            // 3-3) 카드 전체에 마우스 리스너 부착
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    setBackground(hoverBg);
+                    setBorder(BorderFactory.createLineBorder(hoverBorder, 1));
+                    infoPanel.setBackground(hoverBg);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    setBackground(normalBg);
+                    setBorder(BorderFactory.createLineBorder(normalBorder, 1));
+                    infoPanel.setBackground(normalBg);
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    PurchaseFrame purchaseFrame = new PurchaseFrame(user, coin);
+                    purchaseFrame.setVisible(true);
+                }
+            });
+        }
     }
 
     /**
-     * 코인 id에 해당하는 아이콘을 클래스패스(/img/)에서 로드해서 반환합니다.
-     * coin.getId() 값이 파일명(확장자 제외)과 일치해야 합니다.
-     * 예) "bitcoin" → "/img/bitcoin.png"
-     * 일치하는 리소스가 없으면 "/img/error.png"를 대신 반환합니다.
+     * coin.getId() 값에 맞춰 클래스패스(/img/)에서 아이콘을 로드합니다.
+     * 예: "bitcoin" → "/img/bitcoin.png"
+     * 해당 리소스가 없으면 "/img/error.png"로 대신 로드합니다.
      */
     private ImageIcon loadCoinIcon(String coinId) {
         String basePath = "/img/";
-        String fileName = coinId + ".png";           
+        String fileName = coinId + ".png";
         String resourcePath = basePath + fileName;
 
-        java.net.URL imgUrl = getClass().getResource(resourcePath);
+        URL imgUrl = getClass().getResource(resourcePath);
         if (imgUrl == null) {
             imgUrl = getClass().getResource(basePath + "error.png");
         }

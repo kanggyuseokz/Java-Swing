@@ -74,7 +74,7 @@ public class LoginPanel extends JPanel {
 			if (user != null && user.getPassword().equals(password)) {
 				// 로그인 성공
 				DialogUtil.showSuccess(this, "로그인 성공!");
-		        mainWindow.showMainUI(user);
+		        mainWindow.showCoinCardPanel(user);
 		    } else {
 		        DialogUtil.showError(this, "아이디 또는 비밀번호가 틀렸습니다.");
 			}
