@@ -2,6 +2,7 @@ package coinmockproject.gui.panel;
 
 import coinmockproject.db.*;
 import coinmockproject.gui.*;
+import coinmockproject.model.User;
 import coinmockproject.util.*;
 
 import lombok.AllArgsConstructor;
@@ -78,19 +79,18 @@ public class RegisterPanel extends JPanel {
 			}
 
 			// 회원가입 시도
-			boolean success = userRepo.registerUser(username, password);
-
-			if (success) {
-			    DialogUtil.showSuccess(this, "회원가입 성공! 로그인 해주세요.");
+			User registered = userRepo.registerUser(username, password);
+			if (registered != null) {
+			    DialogUtil.showSuccess(this, "회원가입 성공!");
 			    mainWindow.showLogin();
 			} else {
-			    DialogUtil.showError(this, "이미 존재하는 아이디입니다.");
+			    DialogUtil.showError(this, "회원가입 실패: 아이디가 이미 존재하거나 DB 오류");
 			}
 		});
 
 		goLoginBtn.addActionListener(e -> mainWindow.showLogin());
 
-		// 컴포넌트 추가
+		// 컴포넌트 추가 
 		add(title);
 		add(idLabel);
 		add(usernameField);
