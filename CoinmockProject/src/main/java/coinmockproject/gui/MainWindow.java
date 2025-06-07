@@ -18,11 +18,17 @@ import java.awt.event.ActionEvent;
 
 public class MainWindow extends Frame {
     private User loggedInUser;
+    private JLabel topBalanceLabel;
 	public MainWindow() {
 		setTitleBar();
 		showLogin(); // 시작 시 로그인 화면
 		setVisible(true); // Frame에서 호출하지 않을 경우 필요
 	}
+	/** 화면 상단에 잔액 표시를 업데이트하는 유틸 메서드 */
+    public void updateBalanceDisplay(double balance) {
+        String text = "잔액: $ " + String.format("%,.2f", balance);
+        topBalanceLabel.setText(text);
+    }
 
 	public void showLogin() {
 		mainPanel.removeAll();

@@ -55,7 +55,18 @@ public class CoinSelectionPanel extends JPanel {
     }
 
     private void updateTable() {
-        Coin[] coins = CoinAPIService.fetchCoins(new ArrayList<>(selectedCoins));
+        Coin[] coins;
+		try {
+			coins = CoinAPIService.fetchCoins(new ArrayList<>(selectedCoins));
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(
+		            this,
+		            "시세를 불러오는 중 오류 발생:\n" + e.getMessage(),
+		            "Error",
+		            JOptionPane.ERROR_MESSAGE
+		        );
+		        return;  // 예외 시 더 이상 진행하지 않도록
+		}
         model.setRowCount(0);
         for (Coin coin : coins) {
             model.addRow(new Object[]{coin.getName(), coin.getSymbol(), String.format("$%,.2f", coin.getPriceUsd())});

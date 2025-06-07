@@ -1,5 +1,6 @@
 package coinmockproject.service;
 
+import coinmockproject.db.DBManager;
 import coinmockproject.db.TradeRepository;
 import coinmockproject.db.UserRepository;
 import coinmockproject.model.Coin;
@@ -7,8 +8,15 @@ import coinmockproject.model.Trade;
 import coinmockproject.model.User;
 import lombok.Getter;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 @Getter
 /**
  * PortfolioService (JDBC + trade-only 방식)
@@ -76,6 +84,15 @@ public class PortfolioService {
         return true;
     }
 
+    /**
+     * 사용자가 보유 중인 코인 목록 조회
+     */
+    public List<String> getOwnedSymbols(User user) {
+        Map<String, Double> holdings = tradeRepo.findCurrentHoldings(user.getUsername());
+        return holdings.keySet().stream().collect(Collectors.toList());
+    }
+    
+    
     /**
      * 코인 매도 로직
      * 1) 현재 보유량 조회 → 2) 보유량 검증(충분한 개수인지) → 3) trade 테이블에 SELL 이력 저장 + 잔액 증가

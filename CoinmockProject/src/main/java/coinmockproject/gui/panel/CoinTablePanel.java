@@ -54,7 +54,19 @@ public class CoinTablePanel extends JPanel {
      */
     private void refreshData() {
         SwingUtilities.invokeLater(() -> {
-            Coin[] coins = CoinAPIService.fetchCoins();
+            Coin[] coins;
+			try {
+				coins = CoinAPIService.fetchCoins();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(
+			            this,
+			            "시세를 불러오는 중 오류 발생:\n" + e.getMessage(),
+			            "Error",
+			            JOptionPane.ERROR_MESSAGE
+			        );
+			        return;  // 예외 시 더 이상 진행하지 않도록
+			}
             updateTable(coins);
         });
     }

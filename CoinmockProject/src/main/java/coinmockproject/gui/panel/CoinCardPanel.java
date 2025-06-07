@@ -73,7 +73,18 @@ public class CoinCardPanel extends JPanel {
         cardContainer.setBackground(ColorTheme.DIMP_GREY);
         cardContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        Coin[] coinArray = CoinAPIService.fetchCoins();
+        Coin[] coinArray;
+		try {
+			coinArray = CoinAPIService.fetchCoins();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(
+		            this,
+		            "시세를 불러오는 중 오류 발생:\n" + e.getMessage(),
+		            "Error",
+		            JOptionPane.ERROR_MESSAGE
+		        );
+		        return;  // 예외 시 더 이상 진행하지 않도록
+		}
         List<Coin> allCoins = Arrays.asList(coinArray);
 
         for (Coin coin : allCoins) {
@@ -105,7 +116,7 @@ public class CoinCardPanel extends JPanel {
             imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
             imageLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-            ImageIcon icon = loadCoinIcon(coin.getSymbol());
+            ImageIcon icon = loadCoinIcon(coin.getName());
             if (icon != null) {
                 Image scaled = icon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
                 imageLabel.setIcon(new ImageIcon(scaled));
@@ -170,9 +181,9 @@ public class CoinCardPanel extends JPanel {
      * 예: "bitcoin" → "/img/bitcoin.png"
      * 해당 리소스가 없으면 "/img/error.png"로 대신 로드합니다.
      */
-    private ImageIcon loadCoinIcon(String coinId) {
+    private ImageIcon loadCoinIcon(String coinSymbol) {
         String basePath = "/img/";
-        String fileName = coinId + ".png";
+        String fileName = coinSymbol + ".png";
         String resourcePath = basePath + fileName;
 
         URL imgUrl = getClass().getResource(resourcePath);

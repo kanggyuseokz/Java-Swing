@@ -16,6 +16,8 @@ import java.util.*;
  */
 public class TradeRepository {
 
+	
+	
     /**
      * 거래 저장 (insert)
      */
@@ -116,31 +118,40 @@ public class TradeRepository {
      * @param username 조회할 사용자 아이디
      * @return Map<coin_symbol, netAmount>
      */
+    /**
+     * username 사용자의 현재 보유량을
+     * coin → quantity 맵으로 반환
+     */
     public Map<String, Double> findCurrentHoldings(String username) {
-        String sql = ""
-            + "SELECT coin, "
-            + "       SUM(CASE WHEN type = 'BUY' THEN amount ELSE -amount END) AS net_amount "
-            + "  FROM trade "
-            + " WHERE username = ? "
-            + " GROUP BY coin "
-            + " HAVING net_amount <> 0";
-
         Map<String, Double> holdings = new HashMap<>();
+        String sql =
+            "SELECT coin, " +
+            "       SUM(CASE WHEN type = 'BUY' THEN amount " +
+            "                WHEN type = 'SELL' THEN -amount " +
+            "                ELSE 0 END) AS net_qty " +
+            "FROM trade " +
+            "WHERE username = ? " +
+            "GROUP BY coin " +
+            "HAVING net_qty > 0";
+
         try (Connection conn = DBManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String coin      = rs.getString("coin");
-                    double netAmount = rs.getDouble("net_amount");
-                    holdings.put(coin, netAmount);
+                    holdings.put(
+                        rs.getString("coin"),
+                        rs.getDouble("net_qty")
+                    );
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
         return holdings;
     }
+
 
 }

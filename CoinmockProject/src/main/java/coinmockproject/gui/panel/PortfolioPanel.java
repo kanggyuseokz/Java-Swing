@@ -10,6 +10,8 @@ import coinmockproject.service.CoinAPIService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +31,10 @@ public class PortfolioPanel extends JPanel {
     private JTable holdingsTable;
     private DefaultTableModel tableModel;
     private JButton investBtn;
-
+    private JButton sellBtn;
+    
+    
+    
     public PortfolioPanel(MainWindow mainWindow, User user) {
         this.mainWindow = mainWindow;
         this.user = user;
@@ -93,18 +98,26 @@ public class PortfolioPanel extends JPanel {
         bottomPanel.setBackground(ColorTheme.GREY);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
+        // 매도 버튼
+        sellBtn = new JButton("매도하기");
+        sellBtn.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        sellBtn.setBackground(new Color(178, 34, 34));
+        sellBtn.setForeground(Color.WHITE);
+        sellBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        sellBtn.addActionListener(new SellListener());
+        bottomPanel.add(sellBtn);
+
+        
+        // 기존 투자하기 버튼
         investBtn = new JButton("투자하기");
         investBtn.setFont(new Font("맑은 고딕", Font.BOLD, 14));
         investBtn.setBackground(new Color(70, 130, 180));
         investBtn.setForeground(Color.WHITE);
         investBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        investBtn.addActionListener(e -> {
-            // 클릭 시 CoinCardPanel로 전환
-            mainWindow.showCoinCardPanel(user);
-        });
-
+        investBtn.addActionListener(e -> mainWindow.showCoinCardPanel(user));
         bottomPanel.add(investBtn);
+
+        
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
@@ -118,7 +131,18 @@ public class PortfolioPanel extends JPanel {
         Map<String, Double> holdings = portfolioService.getCurrentHoldings(user);
 
         // 4-3. 코인 시세 호출(Coin[] → List<Coin>)
-        Coin[] coinArray = CoinAPIService.fetchCoins();
+        Coin[] coinArray;
+        try {
+            coinArray = CoinAPIService.fetchCoins();  // throws Exception
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                this,
+                "코인 시세 불러오기 실패:\n" + ex.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return; // 시세를 못 가져오면 더 이상 진행하지 않음
+        }
         List<Coin> allCoins = Arrays.asList(coinArray);
 
         // 4-4. 테이블 초기화
@@ -147,7 +171,7 @@ public class PortfolioPanel extends JPanel {
                 currentPrice < 0 ? "Error" : String.format("$%,.2f", value)
             });
         }
-
+        
         // 4-6. ROI 계산: (현재자산총액 - 초기투자금) / 초기투자금 * 100
         double initialInvestment = 5000.00;
         double currentAssets = currentBalance + totalHoldingsValue;
@@ -160,5 +184,112 @@ public class PortfolioPanel extends JPanel {
         } else {
             roiLabel.setForeground(new Color(200, 0, 0));
         }
+    }
+    
+    class SellListener implements ActionListener {
+    	@Override
+    	public void actionPerformed(ActionEvent e) {
+    		int row = holdingsTable.getSelectedRow();
+    		if (row < 0) {
+    			JOptionPane.showMessageDialog(
+    					PortfolioPanel.this,
+    					"매도할 코인을 선택하세요.",
+    					"경고",
+    					JOptionPane.WARNING_MESSAGE
+    					);
+    			return;
+    		}
+    		
+    		String symbol = tableModel.getValueAt(row, 0).toString();
+    		double heldQty = Double.parseDouble(
+    				tableModel.getValueAt(row, 1).toString().replace(",", "")
+    				);
+    		
+    		String input = JOptionPane.showInputDialog(
+    				PortfolioPanel.this,
+    				String.format("%s 보유량: %.6f\n매도할 수량을 입력하세요:", symbol, heldQty),
+    				"매도",
+    				JOptionPane.PLAIN_MESSAGE
+    				);
+    		if (input == null) return;
+    		
+    		double sellQty;
+    		try {
+    			sellQty = Double.parseDouble(input.trim());
+    		} catch (NumberFormatException ex) {
+    			JOptionPane.showMessageDialog(
+    					PortfolioPanel.this,
+    					"유효한 숫자를 입력하세요.",
+    					"입력 오류",
+    					JOptionPane.ERROR_MESSAGE
+    					);
+    			return;
+    		}
+    		if (sellQty <= 0 || sellQty > heldQty) {
+    			JOptionPane.showMessageDialog(
+    					PortfolioPanel.this,
+    					"수량이 올바르지 않습니다.",
+    					"수량 오류",
+    					JOptionPane.ERROR_MESSAGE
+    					);
+    			return;
+    		}
+    		
+    		// CoinAPIService.fetchCoins() 로 미리 로드해둔 코인 리스트에서 찾기
+    	    Coin[] coinsArray;
+    	    try {
+    	        // throws Exception 이므로 반드시 try–catch
+    	        coinsArray = CoinAPIService.fetchCoins();
+    	    } catch (Exception ex) {
+    	        JOptionPane.showMessageDialog(
+    	            null,
+    	            "시세를 불러오는 중 오류 발생:\n" + ex.getMessage(),
+    	            "Error",
+    	            JOptionPane.ERROR_MESSAGE
+    	        );
+    	        return;  // 예외 시 더 이상 진행하지 않도록
+    	    }
+
+    	    // 2) List 변환
+    	    List<Coin> allCoins = Arrays.asList(coinsArray);
+    		Coin coin = allCoins.stream()
+    				.filter(c -> c.getSymbol().equalsIgnoreCase(symbol))
+    				.findFirst()
+    				.orElse(null);
+    		if (coin == null) {
+    			JOptionPane.showMessageDialog(
+    					PortfolioPanel.this,
+    					"코인 정보를 찾을 수 없습니다.",
+    					"오류",
+    					JOptionPane.ERROR_MESSAGE
+    					);
+    			return;
+    		}
+    		
+    		// 실제 매도 호출
+    		boolean success = portfolioService.sellCoin(user, coin, sellQty);
+    		if (!success) {
+    			JOptionPane.showMessageDialog(
+    					PortfolioPanel.this,
+    					"매도에 실패했습니다.",
+    					"오류",
+    					JOptionPane.ERROR_MESSAGE
+    					);
+    			return;
+    		}
+    		
+    		// UI 갱신
+    		loadData();
+    		balanceLabel.setText(user.getUsername() + "님 잔액: $" 
+    				+ String.format("%,.2f", user.getBalance()));
+    		mainWindow.updateBalanceDisplay(user.getBalance());
+    		
+    		JOptionPane.showMessageDialog(
+    				PortfolioPanel.this,
+    				String.format("%s %.6f개 매도 완료", symbol, sellQty),
+    				"완료",
+    				JOptionPane.INFORMATION_MESSAGE
+    				);
+    	}
     }
 }
