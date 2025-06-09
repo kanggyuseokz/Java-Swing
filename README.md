@@ -22,7 +22,6 @@
 
 - ✅ CoinGecko API 기반 실시간 코인 시세 조회
 - ✅ Java Swing UI: 시세 테이블, 포트폴리오, 거래내역
-- ✅ 수동 새로고침 버튼 및 5초 자동 갱신
 - ✅ 포트폴리오 수익률, 잔고 계산 기능
 - ✅ "나의 투자 현황" 라벨 클릭 시 화면 전환
 - ✅ 포트폴리오에서 "투자하기" 버튼 클릭 시 시세 화면으로 복귀
@@ -42,8 +41,6 @@ coinmockproject/
     ├── gui/                         # UI 관련 클래스
     │   ├── panel/                   # 화면 구성 요소 (화면 전환 단위)
     │   │   ├── CoinCardPanel.java         # 코인 상세/매수/매도 UI
-    │   │   ├── CoinSelectionPanel.java    # 사용자가 코인 선택하는 화면
-    │   │   ├── CoinTablePanel.java        # 전체 코인 시세 테이블 UI
     │   │   ├── LoginPanel.java            # 로그인 화면
     │   │   ├── RegisterPanel.java         # 회원가입 화면
     │   │   ├── PortfolioPanel.java        # 포트폴리오 및 수익률 확인 UI
@@ -54,7 +51,6 @@ coinmockproject/
 
     ├── model/                       # 데이터 객체 클래스 (DTO/VO)
     │   ├── Coin.java                # 코인 정보
-    │   ├── Portfolio.java           # 사용자 보유 자산 및 수익률
     │   ├── Trade.java               # 매수/매도 거래 정보
     │   └── User.java                # 사용자 계정 정보
 
@@ -68,7 +64,41 @@ coinmockproject/
         └── EnvLoader.java           # 환경변수(.env) 로딩 유틸
 ```
 ---
+## DB 초기화
+```SQL
+-- 1) user 테이블: id는 AUTO_INCREMENT이지만, 애플리케이션에서는 username만 사용
+CREATE TABLE user (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(100) NOT NULL,
+  balance DOUBLE NOT NULL
+);
 
+-- 2) holdings 테이블: user_id 대신 username 컬럼으로 사용자를 참조
+CREATE TABLE holdings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  coin_symbol VARCHAR(16) NOT NULL,
+  amount DOUBLE NOT NULL,
+  UNIQUE KEY uk_user_coin (username, coin_symbol),
+  FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE
+);
+
+-- 3) trade 테이블: 거래 기록 저장
+CREATE TABLE trade (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  coin VARCHAR(50) NOT NULL,
+  type VARCHAR(10) NOT NULL,    -- BUY or SELL
+  price DOUBLE NOT NULL,
+  amount DOUBLE NOT NULL,
+  time TIMESTAMP NOT NULL
+);
+ALTER TABLE trade
+  ADD COLUMN username VARCHAR(50) NOT NULL AFTER coin,
+  ADD INDEX idx_trade_username (username);
+
+```
+---
 ## 🛠️ 기술 스택
 
 - Java 8 이상
