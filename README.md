@@ -74,17 +74,7 @@ CREATE TABLE user (
   balance DOUBLE NOT NULL
 );
 
--- 2) holdings 테이블: user_id 대신 username 컬럼으로 사용자를 참조
-CREATE TABLE holdings (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50) NOT NULL,
-  coin_symbol VARCHAR(16) NOT NULL,
-  amount DOUBLE NOT NULL,
-  UNIQUE KEY uk_user_coin (username, coin_symbol),
-  FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE
-);
-
--- 3) trade 테이블: 거래 기록 저장
+-- 2) trade 테이블: 거래 기록 저장
 CREATE TABLE trade (
   id INT AUTO_INCREMENT PRIMARY KEY,
   coin VARCHAR(50) NOT NULL,
